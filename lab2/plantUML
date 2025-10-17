@@ -1,0 +1,41 @@
+@startuml
+left to right direction
+
+actor "Customer" as Client
+actor "Payment Service" as PaymentService
+
+usecase "View movie list" as UC1
+usecase "View showtimes" as UC2
+usecase "View movie details" as UC3
+usecase "Select seats" as UC4
+usecase "Book ticket" as UC5
+usecase "Pay for ticket online" as UC6
+usecase "Confirm payment" as UC7
+usecase "Receive e-ticket" as UC8
+usecase "Cancel booking" as UC9
+usecase "Register account" as UC10
+usecase "Log in" as UC11
+usecase "Manage profile" as UC12
+usecase "Receive notification" as UC13
+usecase "View booking history" as UC14
+
+Client --> UC1
+Client --> UC2
+Client --> UC5
+Client --> UC10
+Client --> UC11
+Client --> UC12
+
+UC5 ..> UC4 : <<use>>
+UC5 ..> UC6 : <<use>>
+UC6 ..> UC7 : <<use>>
+UC12 ..> UC14 : <<use>>
+
+UC1 --> UC3 : <<extend>>
+UC5 --> UC8 : <<extend>>
+UC5 --> UC9 : <<extend>>
+UC8 --> UC13 : <<extend>>
+
+PaymentService --> UC7
+
+@enduml
