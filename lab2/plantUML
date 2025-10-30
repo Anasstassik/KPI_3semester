@@ -1,41 +1,61 @@
 @startuml
 left to right direction
 
-actor "Customer" as Client
-actor "Payment Service" as PaymentService
+actor Customer
+actor Administrator
 
-usecase "View movie list" as UC1
-usecase "View showtimes" as UC2
-usecase "View movie details" as UC3
-usecase "Select seats" as UC4
-usecase "Book ticket" as UC5
-usecase "Pay for ticket online" as UC6
-usecase "Confirm payment" as UC7
-usecase "Receive e-ticket" as UC8
-usecase "Cancel booking" as UC9
-usecase "Register account" as UC10
-usecase "Log in" as UC11
-usecase "Manage profile" as UC12
-usecase "Receive notification" as UC13
-usecase "View booking history" as UC14
+rectangle "Movie Ticket Booking System" {
 
-Client --> UC1
-Client --> UC2
-Client --> UC5
-Client --> UC10
-Client --> UC11
-Client --> UC12
+  usecase "Register account" as UC_Reg
+  usecase "Log in" as UC_Login
+  usecase "View movie list" as UC_List
+  usecase "View showtimes" as UC_Showtimes
+  usecase "Book ticket" as UC_Book
+  usecase "Manage profile" as UC_Profile
+  usecase "View booking history" as UC_History
+  usecase "Cancel booking" as UC_Cancel
+  usecase "Select seats" as UC_Seats
+  usecase "Pay for ticket" as UC_Pay
+  usecase "View movie details" as UC_Details
+  usecase "Receive e-ticket" as UC_Receive_Ticket
+  usecase "Receive cancellation" as UC_Receive_Cancel
+  
+  usecase "Manage movies" as UC_Admin_Movies
+  usecase "Manage showtimes" as UC_Admin_Shows
+  usecase "Manage users" as UC_Admin_Users
+  usecase "Process refund" as UC_Admin_Refund
 
-UC5 ..> UC4 : <<use>>
-UC5 ..> UC6 : <<use>>
-UC6 ..> UC7 : <<use>>
-UC12 ..> UC14 : <<use>>
+  Customer -- UC_Reg
+  Customer -- UC_Login
+  Customer -- UC_List
+  Customer -- UC_Showtimes
+  Customer -- UC_Book
+  Customer -- UC_Profile
+  Customer -- UC_History
+  Customer -- UC_Cancel
+  Customer -- UC_Seats
+  Customer -- UC_Pay
+  Customer -- UC_Details
 
-UC1 --> UC3 : <<extend>>
-UC5 --> UC8 : <<extend>>
-UC5 --> UC9 : <<extend>>
-UC8 --> UC13 : <<extend>>
+  Administrator -- UC_Admin_Movies
+  Administrator -- UC_Admin_Shows
+  Administrator -- UC_Admin_Users
+  Administrator -- UC_Admin_Refund
 
-PaymentService --> UC7
+  UC_Login <. UC_Reg : <<extends>>
+  UC_Profile <. UC_Login : <<extends>>
+  UC_History <. UC_Profile : <<extends>>
+  UC_Cancel <. UC_History : <<extends>>
 
+  UC_Details <.. UC_List : <<extends>> 
+
+  UC_Book .> UC_Seats : <<use>>
+  UC_Book .> UC_Pay : <<use>>
+  UC_Details ..> UC_Showtimes : <<use>>
+
+  UC_Pay ..> UC_Receive_Ticket : <<use>>
+
+  UC_Cancel ..> UC_Admin_Refund : <<use>>
+  UC_Cancel ..> UC_Receive_Cancel : <<use>>
+}
 @enduml
