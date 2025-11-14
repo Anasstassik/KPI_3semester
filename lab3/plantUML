@@ -1,0 +1,71 @@
+@startuml
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+autonumber
+
+actor Customer
+participant "Booking system" as Sys
+database Database as DB
+participant "Payment Gateway" as Gateway
+
+Customer -> Sys: select showtime
+activate Sys
+
+Sys -> DB: get seat map
+activate DB
+DB --> Sys: return seat status list
+deactivate DB
+
+Sys --> Customer: display seats
+deactivate Sys
+
+Customer -> Sys: select seats
+activate Sys
+
+Sys -> DB: check availability
+activate DB
+DB --> Sys: status
+deactivate DB
+
+alt Seats are taken
+    Sys --> Customer: show error
+else Seats are available
+    Sys -> DB: lock seats
+    activate DB
+    DB --> Sys: confirm lock
+    deactivate DB
+    
+    Sys --> Customer: request payment
+    
+    Customer -> Sys: submit payment details
+    
+    Sys -> Gateway: process transaction
+    activate Gateway
+    
+    alt payment failed
+        Gateway -> Sys: transaction declined
+        
+        Sys -> DB: release seats
+        activate DB
+        DB --> Sys: seats released
+        deactivate DB
+        
+        Sys --> Customer: show payment error
+    else Payment successful
+        Gateway -> Sys: transaction approved
+        deactivate Gateway
+        
+        Sys -> DB: create booking
+        activate DB
+        DB --> Sys: return booking id
+        deactivate DB
+        
+        Sys -> Sys: generate e-ticket
+        Sys --> Customer: send confirmation
+    end
+end
+
+destroy Customer
+
+@enduml
