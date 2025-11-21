@@ -1,0 +1,103 @@
+@startuml
+' Налаштування стилю
+skinparam style strictuml
+skinparam ActivityBackgroundColor #FFFFFF
+skinparam ActivityBorderColor #000000
+skinparam ActivityDiamondBackgroundColor #FFFFFF
+skinparam ActivityDiamondBorderColor #000000
+skinparam PartitionBackgroundColor #F4F4F4
+
+' Визначення доріжок (Swimlanes)
+|Customer|
+start
+:Select
+Showtime;
+
+|Booking system|
+:Session info;
+:Retrieve Seat Map;
+
+|Customer|
+' Початок циклу вибору місць
+repeat
+    :View Seat Map;
+    :Select Seats;
+    
+    |Booking system|
+    :Selected Seats
+    info;
+    
+    if (seats are available?) then (no)
+        :seats aren't
+        available>
+        |Customer|
+        if (decision?) then (ended\nsession)
+            stop
+        else (choose\nanother seat)
+            ' Повернення на початок циклу
+        endif
+    else (yes)
+        break
+    endif
+repeat while (loop)
+
+|Booking system|
+' Паралельний процес: Блокування місця та запуск таймера
+fork
+    :Lock Seat in DB;
+fork again
+    :Start 30-min
+    Reservation Timer;
+    :timer out>
+    detach
+end fork
+
+:Request
+Payment Form;
+:Form info;
+
+|Customer|
+:Enter Payment
+Details;
+:Submit
+Payment;
+
+|Payment Gateway|
+:Process
+Transaction;
+:Payment status>
+
+|Booking system|
+' Обробка результату транзакції або таймера
+if (Transaction result?) then (transaction\nfailed / timer out)
+    :Release Seats;
+    :Stop Timer;
+    :Payment failed>
+    
+    |Customer|
+    if (Error type?) then (timer out)
+        :Show timer out
+        error;
+    else (transaction\nfailed)
+        :Show Payment
+        Error;
+        stop
+    endif
+    stop
+else (transaction\nsuccess)
+    :Stop Timer;
+    :Create Booking
+    Record;
+    :Generate
+    E-ticket;
+    :e-tickets>
+    
+    |Customer|
+    :e-ticket<
+    :Receive
+    Confirmation
+    and e-ticket;
+    stop
+endif
+
+@enduml
