@@ -1,0 +1,179 @@
+flowchart LR
+    %% Стилі
+    classDef container fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef component fill:#fff,stroke:#333,stroke-width:1px;
+    classDef db fill:#e1f5fe,stroke:#0277bd,stroke-width:2px;
+    classDef api fill:#fff3e0,stroke:#ef6c00,stroke-width:1px;
+
+    %% --- UI LAYER ---
+    subgraph UI [User Interface]
+        direction TB
+        
+        subgraph Pages [Pages Layer]
+            direction TB
+            subgraph AuthPage [Auth Page]
+                Login[Login form]
+                Register[Register form]
+                AuthComps[Auth components]
+            end
+            
+            subgraph MoviePage [Movie Page]
+                MovieList[Movie List]
+                ShowtimeSel[Showtime Selector]
+                MovieComps[Movie components]
+            end
+            
+            subgraph BookingPage [Booking Page]
+                SeatMap[Seat Map]
+                TicketSum[Ticket Summary]
+                BookComps[Booking components]
+            end
+
+            %% Інші сторінки спрощено для читабельності
+            UserPage[User Page]
+            AdminPage[Admin Page]
+            ShowtimePage[Showtime Page]
+        end
+
+        subgraph Stores [State Management]
+            AuthStore
+            MovieStore
+            SeatStore
+            UserStore
+            AdminStore
+            ShowtimeStore
+            LocalStorage[(Local Storage)]
+            
+            AuthStore & MovieStore & SeatStore --- LocalStorage
+        end
+
+        subgraph ClientAPI [Client API Adapter]
+            AuthAPI_C[Auth API]
+            MovieAPI_C[Movie API]
+            SeatAPI_C[Seat API]
+            UserAPI_C[User API]
+            AdminAPI_C[Admin API]
+            ShowtimeAPI_C[Showtime API]
+        end
+    end
+
+    %% --- CONNECTIONS INSIDE UI ---
+    Pages --> Stores
+    Stores --> ClientAPI
+
+    %% --- API GATEWAY ---
+    subgraph APIGateway [API Gateway]
+        HttpRouter[HTTP Router]
+        EntryPoint[EntryPoint config]
+        Validator[Validator]
+        JSONVal[JSON Validator]
+        AuthMid[Auth Middleware]
+        
+        HttpRouter --> EntryPoint
+        HttpRouter --> Validator
+        Validator -.-> JSONVal
+        HttpRouter --> AuthMid
+    end
+
+    ClientAPI -- HTTP API --> HttpRouter
+
+    %% --- BACKEND MODULES ---
+    subgraph Modules [Backend Modules]
+        direction TB
+        
+        %% Movie Module
+        subgraph MovieMod [Movie Module]
+            direction TB
+            MovieEP((Movie EP))
+            MovieCtrl[Movie Controller]
+            MovieSvc[Movie Service]
+            MovieRepo[Movie Repository]
+            
+            MovieEP --> MovieCtrl --> MovieSvc --> MovieRepo
+        end
+
+        %% Showtime Module
+        subgraph ShowtimeMod [Showtime Module]
+            direction TB
+            ShowtimeEP((Showtime EP))
+            ShowtimeCtrl[Showtime Controller]
+            ShowtimeSvc[Showtime Service]
+            ShowtimeRepo[Showtime Repository]
+            
+            ShowtimeEP --> ShowtimeCtrl --> ShowtimeSvc --> ShowtimeRepo
+        end
+
+        %% Booking Module
+        subgraph BookingMod [Booking Module]
+            direction TB
+            BookingEP((Booking EP))
+            BookingCtrl[Booking Controller]
+            BookingSvc[Booking Service]
+            BookingRepo[Booking Repository]
+            
+            BookingEP --> BookingCtrl --> BookingSvc --> BookingRepo
+        end
+
+        %% Auth Module
+        subgraph AuthMod [Auth Module]
+            direction TB
+            AuthEP((Auth EP))
+            AuthCtrl[Auth Controller]
+            AuthSvc[Auth Service]
+            AuthRepo[Auth Repository]
+            
+            AuthEP --> AuthCtrl --> AuthSvc --> AuthRepo
+        end
+
+
+        %% User Module
+        subgraph UserMod [User Module]
+            direction TB
+            UserEP((User EP))
+            UserCtrl[User Controller]
+            UserSvc[User Service]
+            UserRepo[User Repository]
+            
+            UserEP --> UserCtrl --> UserSvc --> UserRepo
+        end
+        
+        %% Payment Module
+        subgraph PaymentMod [Payment Module]
+            direction TB
+            PaymentEP((Payment EP))
+            PaymentCtrl[Payment Controller]
+            PaymentSvc[Payment Service]
+            
+            PaymentEP --> PaymentCtrl --> PaymentSvc
+        end
+
+        EmailSvc[Email Service]
+    end
+
+    %% --- DB LAYER ---
+    subgraph DataLayer [Data Layer]
+        DBPool[DB Connection Pool]
+        DB[(DB)]
+        SQL[(SQL)]
+    end
+
+    %% --- SYSTEM CONNECTIONS ---
+    EntryPoint --> MovieEP
+    EntryPoint --> ShowtimeEP
+    EntryPoint --> BookingEP
+    EntryPoint --> AuthEP
+    EntryPoint --> UserEP
+    EntryPoint --> PaymentEP
+
+    %% Repository Connections to DB
+    MovieRepo & ShowtimeRepo & BookingRepo & AuthRepo & UserRepo --> DBPool
+    DBPool --> DB --> SQL
+
+    %% Inter-module communication (implied via services/interfaces)
+    BookingSvc -.-> PaymentSvc
+    PaymentSvc -.-> EmailSvc
+
+    %% Styling Application
+    class UI,Pages,Stores,ClientAPI container
+    class APIGateway,Modules,MovieMod,ShowtimeMod,BookingMod,AuthMod,UserMod,PaymentMod container
+    class LocalStorage,DB,SQL db
